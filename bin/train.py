@@ -41,6 +41,8 @@ PATH = '../input/'
 os.listdir(PATH)
 
 SWITCH_LOSS_EPOCH = 5
+n_epochs = 1
+BATCH_SIZE = 64
 
 # Load Data
 train = pd.read_csv(PATH + 'train.csv')
@@ -83,7 +85,6 @@ dev_dataset = CarDataset(df_dev, train_images_dir)
 test_dataset = CarDataset(df_test, test_images_dir)
 
 # Create data generators 
-BATCH_SIZE = 1
 train_loader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
 dev_loader = DataLoader(dataset=dev_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=0)
 test_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=4)
@@ -95,8 +96,6 @@ base_model = resnext50(pretrained=False)
 # Gets the GPU if there is one, otherwise the cpu
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(device)
-
-n_epochs = 10
 
 model = CentResnet(8, base_model).to(device)
 optimizer = optim.AdamW(model.parameters(), lr=0.001)
@@ -112,7 +111,7 @@ history = pd.DataFrame()
 for epoch in range(n_epochs):
     torch.cuda.empty_cache()
     gc.collect()
-    model, history = trainer(model, epoch, train_loader, history)
+    model, history = trainer(model, epoch, train_loader, SWITCH_LOSS_EPOCH, optimizer, exp_lr_scheduler, history)
     model, history = evaluate(model, epoch, dev_loader, SWITCH_LOSS_EPOCH, history)
 
 # Save & Plot Epoch History

@@ -2,6 +2,12 @@ import numpy as np
 import pandas as pd
 from math import sqrt, acos, pi, sin, cos
 
+# From camera.zip
+camera_matrix = np.array([[2304.5479, 0,  1686.2379],
+                          [0, 2305.8757, 1354.9849],
+                          [0, 0, 1]], dtype=np.float32)
+camera_matrix_inv = np.linalg.inv(camera_matrix)
+
 def str2coords(s, names=['id', 'yaw', 'pitch', 'roll', 'x', 'y', 'z']):
     '''
     Input:

@@ -1,4 +1,5 @@
 import torch
+from torch.optim import lr_scheduler
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
@@ -12,7 +13,9 @@ import sys
 sys.path.append('./')
 from libs.binary_mask_loss import criterion
 
-def trainer(model, epoch, train_loader, history=None):
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+def trainer(model, epoch, train_loader, SWITCH_LOSS_EPOCH, optimizer, c_lr_scheduler, history=None):
     model.train()
     t = tqdm(train_loader)
     for batch_idx, (img_batch, mask_batch, regr_batch) in enumerate(t):
@@ -35,7 +38,7 @@ def trainer(model, epoch, train_loader, history=None):
         loss.backward()
         
         optimizer.step()
-        exp_lr_scheduler.step()
+        c_lr_scheduler.step()
 
     
     print('Train Epoch: {} \tLR: {:.6f}\tLoss: {:.6f}\tMaskLoss: {:.6f}\tRegLoss: {:.6f}'.format(

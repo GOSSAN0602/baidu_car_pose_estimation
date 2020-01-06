@@ -1,13 +1,19 @@
 import numpy as np
 import pandas as pd
+import cv2
 
 from torch.utils.data import Dataset, DataLoader
 import torch
 
 import sys
 sys.path.append('./')
-from bin.train import imread
+from libs.img_preprocess import *
 
+def imread(path, fast_mode=False):
+    img = cv2.imread(path)
+    if not fast_mode and img is not None and len(img.shape) == 3:
+        img = np.array(img[:, :, ::-1])
+    return img
 
 class CarDataset(Dataset):
     """Car dataset."""
