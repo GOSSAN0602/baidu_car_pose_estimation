@@ -39,7 +39,6 @@ def trainer(model, epoch, train_loader, SWITCH_LOSS_EPOCH, optimizer, c_lr_sched
         
         optimizer.step()
         c_lr_scheduler.step()
-        break
     
     print('Train Epoch: {} \tLR: {:.6f}\tLoss: {:.6f}\tMaskLoss: {:.6f}\tRegLoss: {:.6f}'.format(
         epoch,
@@ -73,7 +72,6 @@ def evaluate(model, epoch, dev_loader, SWITCH_LOSS_EPOCH, history=None):
                 valid_loss += loss.data
                 valid_mask_loss += mask_loss.data
                 valid_regr_loss += regr_loss.data 
-            break
     valid_loss /= len(dev_loader.dataset)
     valid_mask_loss /= len(dev_loader.dataset)
     valid_regr_loss /= len(dev_loader.dataset)

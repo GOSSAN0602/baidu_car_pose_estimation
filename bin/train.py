@@ -41,8 +41,8 @@ PATH = '../../input/'
 os.listdir(PATH)
 
 SWITCH_LOSS_EPOCH = 5
-n_epochs = 1
-BATCH_SIZE = 2
+n_epochs = 10
+BATCH_SIZE = 1
 
 # Load Data
 train = pd.read_csv(PATH + 'train.csv')
@@ -154,7 +154,7 @@ plt.figure(figsize=(16,16))
 plt.title('Model predictions thresholded')
 plt.imshow(logits > 0)
 plt.savefig('figs/Model_Predictions_thresholded.png')
-
+"""
 # Visualize Some Prediction Result
 torch.cuda.empty_cache()
 gc.collect()
@@ -174,8 +174,10 @@ for idx in range(4):
     axes[1].set_title('Prediction')
     axes[1].imshow(visualize(img, coords_pred))
     plt.savefig('label_and_Pred_'+str(idx)+'.png')
+"""
 
 # Make Submission
+"""
 val_preds = []
 
 dev_loader = DataLoader(dataset=dev_dataset, batch_size=4, shuffle=False, num_workers=4)
@@ -194,9 +196,9 @@ for img, _, _ in tqdm(dev_loader):
 df_dev['PredictionString'] = val_preds
 df_dev.head()
 df_dev.to_csv('val_predictions.csv', index=False)
-
+"""
 predictions = []
-test_loader = DataLoader(dataset=test_dataset, batch_size=2, shuffle=False, num_workers=4)
+test_loader = DataLoader(dataset=test_dataset, batch_size=2, shuffle=False, num_workers=8)
 
 model.eval()
 
@@ -213,6 +215,7 @@ test = pd.read_csv(PATH + 'sample_submission.csv')
 test['PredictionString'] = predictions
 test.to_csv('predictions.csv', index=False)
 
+"""
 def expand_df(df, PredictionStringCols):
     df = df.dropna().copy()
     df['NumCars'] = [int((x.count(' ')+1)/7) for x in df['PredictionString']]
@@ -331,3 +334,4 @@ for result_flg, scores in p.imap(check_match, range(10)):
     ap_list.append(ap)
 map = np.mean(ap_list)
 print('map:', map)
+"""
