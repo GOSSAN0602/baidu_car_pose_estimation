@@ -37,12 +37,12 @@ from libs.preprocess_for_vis import *
 from libs.radam import *
 from libs.trainer import *
 
-PATH = '../input/'
+PATH = '../../input/'
 os.listdir(PATH)
 
 SWITCH_LOSS_EPOCH = 5
 n_epochs = 1
-BATCH_SIZE = 64
+BATCH_SIZE = 2
 
 # Load Data
 train = pd.read_csv(PATH + 'train.csv')
@@ -71,7 +71,6 @@ def imread(path, fast_mode=False):
 
 img = imread(PATH + 'train_images/ID_8a6e65317' + '.jpg')
 IMG_SHAPE = img.shape
-
 # Get DataSet
 train_images_dir = PATH + 'train_images/{}.jpg'
 test_images_dir = PATH + 'test_images/{}.jpg'
@@ -115,19 +114,18 @@ for epoch in range(n_epochs):
     model, history = evaluate(model, epoch, dev_loader, SWITCH_LOSS_EPOCH, history)
 
 # Save & Plot Epoch History
-torch.save(model.state_dict(), '../loss/resnext50.pth')
-history.to_csv('../loss/history.csv')
-
+torch.save(model.state_dict(), '../../log/resnext50.pth')
+history.to_csv('../../log/history.csv')
 series1 = history.dropna()['mask_loss']
-plt.plot(series1.index, series1 ,label = 'mask loss')
+plt.plot(series1.index.values, series1.values, label = 'mask loss')
 series2 = history.dropna()['regr_loss']
-plt.plot(series2.index, 30*series2,label = 'regr loss')
+plt.plot(series2.index.values, 30*(series2.values), label = 'regr loss')
 series3 = history.dropna()['dev_loss']
-plt.plot(series3.index, series3,label = 'dev loss')
+plt.plot(series3.index.values, series3.values, label = 'dev loss')
 plt.savefig('figs/loss.png')
 
 series = history.dropna()['dev_loss']
-plt.scatter(series.index, series)
+plt.scatter(series.index.values, series.values)
 plt.savefig('figs/dev_loss.png')
 
 # Visualize Predictions
@@ -197,7 +195,7 @@ df_dev['PredictionString'] = val_preds
 df_dev.head()
 df_dev.to_csv('val_predictions.csv', index=False)
 
-
+predictions = []
 test_loader = DataLoader(dataset=test_dataset, batch_size=2, shuffle=False, num_workers=4)
 
 model.eval()
@@ -311,7 +309,7 @@ valid_df = pd.read_csv('val_predictions.csv')
 expanded_valid_df = expand_df(valid_df, ['pitch','yaw','roll','x','y','z','Score'])
 valid_df = valid_df.fillna('')
 
-train_df = pd.read_csv('../input/pku-autonomous-driving/train.csv')
+train_df = pd.read_csv('../../input/pku-autonomous-driving/train.csv')
 train_df = train_df[train_df.ImageId.isin(valid_df.ImageId.unique())]
 # data description page says, The pose information is formatted as
 # model type, yaw, pitch, roll, x, y, z

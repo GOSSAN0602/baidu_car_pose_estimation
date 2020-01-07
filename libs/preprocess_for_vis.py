@@ -1,7 +1,45 @@
 import numpy as np
 import pandas as pd
+import sys
+sys.path.append('./')
+from libs.img_preprocess import _regr_back
+from libs.data_utils import *
+from scipy.optimize import minimize
 
 DISTANCE_THRESH_CLEAR = 2
+
+def visualize(img, coords):
+    # You will also need functions from the previous cells
+    x_l = 1.02
+    y_l = 0.80
+    z_l = 2.31
+    
+    img = img.copy()
+    for point in coords:
+        # Get values
+        x, y, z = point['x'], point['y'], point['z']
+        yaw, pitch, roll = -point['pitch'], -point['yaw'], -point['roll']
+        # Math
+        Rt = np.eye(4)
+        t = np.array([x, y, z])
+        Rt[:3, 3] = t
+        Rt[:3, :3] = euler_to_Rot(yaw, pitch, roll).T
+        Rt = Rt[:3, :]
+        P = np.array([[x_l, -y_l, -z_l, 1],
+                      [x_l, -y_l, z_l, 1],
+                      [-x_l, -y_l, z_l, 1],
+                      [-x_l, -y_l, -z_l, 1],
+                      [0, 0, 0, 1]]).T
+        img_cor_points = np.dot(camera_matrix, np.dot(Rt, P))
+        img_cor_points = img_cor_points.T
+        img_cor_points[:, 0] /= img_cor_points[:, 2]
+        img_cor_points[:, 1] /= img_cor_points[:, 2]
+        img_cor_points = img_cor_points.astype(int)
+        # Drawing
+        img = draw_line(img, img_cor_points)
+        img = draw_points(img, img_cor_points[-1:])
+    
+    return img
 
 def convert_3d_to_2d(x, y, z, fx = 2304.5479, fy = 2305.8757, cx = 1686.2379, cy = 1354.9849):
     # stolen from https://www.kaggle.com/theshockwaverider/eda-visualization-baseline
@@ -9,6 +47,10 @@ def convert_3d_to_2d(x, y, z, fx = 2304.5479, fy = 2305.8757, cx = 1686.2379, cy
 
 def optimize_xy(r, c, x0, y0, z0):
     def distance_fn(xyz):
+        IMG_SHAPE = (2710, 3384, 3)
+        IMG_WIDTH = 1600
+        IMG_HEIGHT = 700
+        MODEL_SCALE = 8
         x, y, z = xyz
         x, y = convert_3d_to_2d(x, y, z0)
         y, x = x, y
