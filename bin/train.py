@@ -41,8 +41,8 @@ PATH = '../../input/'
 os.listdir(PATH)
 
 SWITCH_LOSS_EPOCH = 5
-n_epochs = 10
-BATCH_SIZE = 1
+n_epochs = 7 
+BATCH_SIZE = 2
 
 # Load Data
 train = pd.read_csv(PATH + 'train.csv')
@@ -97,7 +97,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(device)
 
 model = CentResnet(8, base_model).to(device)
-optimizer = optim.AdamW(model.parameters(), lr=0.0001)
+optimizer = optim.AdamW(model.parameters(), lr=0.001)
 #optimizer =  RAdam(model.parameters(), lr = 0.001)
 exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=max(n_epochs, 10) * len(train_loader) // 3, gamma=0.1)
 
