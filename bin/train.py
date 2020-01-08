@@ -17,6 +17,7 @@ from torch.optim import lr_scheduler
 from torch.utils.data import Dataset, DataLoader
 from torchvision import models
 from torchvision import transforms, utils
+import pretrainedmodels
 
 from math import sqrt, acos, pi, sin, cos
 from scipy.spatial.transform import Rotation as R
@@ -40,8 +41,8 @@ from libs.trainer import *
 PATH = '../../input/'
 os.listdir(PATH)
 
-SWITCH_LOSS_EPOCH = 5
-n_epochs = 7 
+SWITCH_LOSS_EPOCH = 5000000000
+n_epochs = 10 
 BATCH_SIZE = 2
 
 # Load Data
@@ -79,7 +80,10 @@ df_train, df_dev = train_test_split(train, test_size=0.1, random_state=63)
 df_test = test
 
 # Create dataset objects
-train_dataset = CarDataset(df_train, train_images_dir)
+train_transform = transforms.Compose([
+    transforms.ColorJitter(contrast=(0.9, 1.1)),
+])
+train_dataset = CarDataset(df_train, train_images_dir, train_transform)
 dev_dataset = CarDataset(df_dev, train_images_dir)
 test_dataset = CarDataset(df_test, test_images_dir)
 
@@ -89,7 +93,9 @@ dev_loader = DataLoader(dataset=dev_dataset, batch_size=BATCH_SIZE, shuffle=Fals
 test_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=4)
 
 # Create Model
-base_model = resnext50(pretrained=False)
+#model_name = 'se_resnext50_32x4d'
+#base_model = pretrainedmodels.__dict__[model_name](num_classes=1000, pretrained='imagenet')
+base_model = resnet18(pretrained=True)
 
 # Train Config
 # Gets the GPU if there is one, otherwise the cpu
@@ -97,9 +103,10 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(device)
 
 model = CentResnet(8, base_model).to(device)
-optimizer = optim.AdamW(model.parameters(), lr=0.001)
-#optimizer =  RAdam(model.parameters(), lr = 0.001)
-exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=max(n_epochs, 10) * len(train_loader) // 3, gamma=0.1)
+#optimizer = optim.AdamW(model.parameters(), lr=0.001)
+optimizer =  RAdam(model.parameters(), lr = 0.001)
+cos_lr_scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=20, eta_min=0.001)
+#exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=max(n_epochs, 10) * len(train_loader) // 3, gamma=0.1)
 
 img_batch = torch.randn((1,3,700,1600))
 test = model(img_batch.to(device))
@@ -110,7 +117,7 @@ history = pd.DataFrame()
 for epoch in range(n_epochs):
     torch.cuda.empty_cache()
     gc.collect()
-    model, history = trainer(model, epoch, train_loader, SWITCH_LOSS_EPOCH, optimizer, exp_lr_scheduler, history)
+    model, history = trainer(model, epoch, train_loader, SWITCH_LOSS_EPOCH, optimizer, cos_lr_scheduler, history)
     model, history = evaluate(model, epoch, dev_loader, SWITCH_LOSS_EPOCH, history)
 
 # Save & Plot Epoch History

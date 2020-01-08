@@ -120,6 +120,9 @@ def get_mesh(batch_size, shape_x, shape_y):
 model_urls = {
     'resnet18': 'https://download.pytorch.org/models/resnet18-5c106cde.pth',
     'resnext50_32x4d': 'https://download.pytorch.org/models/resnext50_32x4d-7cdf4587.pth',
+    'resnext101_32x8d': 'https://download.pytorch.org/models/resnext101_32x8d-8ba56ff5.pth',
+    'wide_resnet50_2': 'https://download.pytorch.org/models/wide_resnet50_2-95faca4d.pth',
+    'wide_resnet101_2': 'https://download.pytorch.org/models/wide_resnet101_2-32ee1156.pth',
     'resnet34': 'https://download.pytorch.org/models/resnet34-333f7ec4.pth',
     'resnet50': 'https://download.pytorch.org/models/resnet50-19c8e357.pth',
     'resnet101': 'https://download.pytorch.org/models/resnet101-5d3b4d8f.pth',
@@ -276,14 +279,27 @@ def resnet18(pretrained=False, **kwargs):
     return model
 
 
-def  resnext50(pretrained=False, **kwargs):
-    """Constructs a ResNet-18 model.
+def resnext50(pretrained=False, **kwargs):
+    """Constructs a ResNext-50 32x4d model.
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = ResNetFeatures(BasicBlock, [2, 2, 2, 2], **kwargs)
+    kwargs['groups'] = 32
+    kwargs['width_per_group'] = 4
+    model = ResNetFeatures(BasicBlock, [3, 4, 6, 3], **kwargs)
     if pretrained:
         _load_pretrained(model, model_zoo.load_url(model_urls['resnext50_32x4d']))
+    return model
+
+
+def resnext101(pretrained=False, **kwargs):
+    """Constructs a ResNeXt-101 32x8d model.
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+    """
+    model = ResNetFeatures(BasicBlock, [3, 4, 23, 3], **kwargs)
+    if pretrained:
+        _load_pretrained(model, model_zoo.load_url(model_urls['resnext101_32x8d']))
     return model
 
 

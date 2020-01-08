@@ -37,6 +37,8 @@ class CarDataset(Dataset):
         
         # Read image
         img0 = imread(img_name, True)
+        if self.transform is not None:
+            img0 = self.transform(img0)
         img = preprocess_image(img0)
         img = np.rollaxis(img, 2, 0)
         
